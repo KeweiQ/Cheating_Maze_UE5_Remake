@@ -7,6 +7,7 @@
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
 #include "InputActionValue.h"
+#include "MazeGameMode.h"
 #include "MazePlayerCharacter.generated.h"
 
 class UInputMappingContext;
@@ -26,6 +27,9 @@ public:
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
+
+	// Game mode
+	TObjectPtr<AMazeGameMode> MazeGameMode;
 	
 	// Player moving speed
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Movement")
@@ -71,22 +75,22 @@ public:
 
 	// Handles interactions with interactbles
 	UFUNCTION()
-	void Interact(const FInputActionValue& Value);
+	void OnInteractPressed(const FInputActionValue& Value);
 
 	// Reset cheating functions
 	UFUNCTION()
-	void Cancel(const FInputActionValue& Value);
+	void OnCancelPressed(const FInputActionValue& Value);
 
 	// Start the game
 	UFUNCTION()
-	void StartLevel(const FInputActionValue& Value);
+	void OnStartPressed(const FInputActionValue& Value);
 
 	// Restart the game
 	UFUNCTION()
-	void RestartLevel(const FInputActionValue& Value);
+	void OnRestartPressed(const FInputActionValue& Value);
 
 	// Pause or resume the game
 	UFUNCTION()
-	void TogglePause(const FInputActionValue& Value);
+	void OnPausePressed(const FInputActionValue& Value);
 
 };

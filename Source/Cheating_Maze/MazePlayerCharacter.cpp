@@ -32,7 +32,8 @@ void AMazePlayerCharacter::BeginPlay()
 		}
 	}
 
-	GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Red, TEXT("We are using MazePlayerCharacter."));
+	// Get current game mode
+	MazeGameMode = CastChecked<AMazeGameMode>(UGameplayStatics::GetGameMode(this));
 	
 }
 
@@ -50,11 +51,11 @@ void AMazePlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInpu
 	{
 		// Bind Movement Actions
 		EnhancedInputComponent->BindAction(MoveAction, ETriggerEvent::Triggered, this, &AMazePlayerCharacter::Move);
-		EnhancedInputComponent->BindAction(MoveAction, ETriggerEvent::Started, this, &AMazePlayerCharacter::Interact);
-		EnhancedInputComponent->BindAction(MoveAction, ETriggerEvent::Started, this, &AMazePlayerCharacter::Cancel);
-		EnhancedInputComponent->BindAction(MoveAction, ETriggerEvent::Started, this, &AMazePlayerCharacter::StartLevel);
-		EnhancedInputComponent->BindAction(MoveAction, ETriggerEvent::Started, this, &AMazePlayerCharacter::RestartLevel);
-		EnhancedInputComponent->BindAction(MoveAction, ETriggerEvent::Started, this, &AMazePlayerCharacter::TogglePause);
+		EnhancedInputComponent->BindAction(MoveAction, ETriggerEvent::Started, this, &AMazePlayerCharacter::OnInteractPressed);
+		EnhancedInputComponent->BindAction(MoveAction, ETriggerEvent::Started, this, &AMazePlayerCharacter::OnCancelPressed);
+		EnhancedInputComponent->BindAction(StartAction, ETriggerEvent::Started, this, &AMazePlayerCharacter::OnStartPressed);
+		EnhancedInputComponent->BindAction(RestartAction, ETriggerEvent::Started, this, &AMazePlayerCharacter::OnRestartPressed);
+		EnhancedInputComponent->BindAction(TogglePauseAction, ETriggerEvent::Started, this, &AMazePlayerCharacter::OnPausePressed);
 	}
 
 }
@@ -78,37 +79,51 @@ void AMazePlayerCharacter::Move(const FInputActionValue& Value)
 }
 
 // Handles interactions with interactbles
-void AMazePlayerCharacter::Interact(const FInputActionValue& Value)
+void AMazePlayerCharacter::OnInteractPressed(const FInputActionValue& Value)
 {
+	if (MazeGameMode)
+	{
+
+	}
 
 }
 
 // Reset cheating functions
-void AMazePlayerCharacter::Cancel(const FInputActionValue& Value)
+void AMazePlayerCharacter::OnCancelPressed(const FInputActionValue& Value)
 {
+	if (MazeGameMode)
+	{
+
+	}
 
 }
 
 // Start the game
-void AMazePlayerCharacter::StartLevel(const FInputActionValue& Value)
+void AMazePlayerCharacter::OnStartPressed(const FInputActionValue& Value)
 {
+	if (MazeGameMode)
+	{
+		MazeGameMode->StartLevel();
+	}
 
 }
 
 // Restart the game
-void AMazePlayerCharacter::RestartLevel(const FInputActionValue& Value)
+void AMazePlayerCharacter::OnRestartPressed(const FInputActionValue& Value)
 {
-	//if (UWorld* CurrentWorld = GetWorld())
-	//{
-	//	// Reload the current level
-	//	FName CurrentLevelName = *CurrentWorld->GetName();
-	//	UGameplayStatics::OpenLevel(CurrentWorld, CurrentLevelName);
-	//}
+	if (MazeGameMode)
+	{
+		MazeGameMode->RestartLevel();
+	}
 
 }
 
 // Pause or resume the game
-void AMazePlayerCharacter::TogglePause(const FInputActionValue& Value)
+void AMazePlayerCharacter::OnPausePressed(const FInputActionValue& Value)
 {
+	if (MazeGameMode)
+	{
+		MazeGameMode->TogglePause();
+	}
 
 }
