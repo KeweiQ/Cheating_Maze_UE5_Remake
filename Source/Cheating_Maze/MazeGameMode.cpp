@@ -3,6 +3,7 @@
 #include "MazeGameMode.h"
 #include "Kismet/GameplayStatics.h"
 
+
 // Sets default values
 AMazeGameMode::AMazeGameMode()
 {
@@ -14,7 +15,7 @@ void AMazeGameMode::BeginPlay()
 {
 	Super::BeginPlay();
 	
-	if (APlayerController* Controller = GetWorld()->GetFirstPlayerController())
+	if (Controller = GetWorld()->GetFirstPlayerController())
 	{
 		// Setup UI
 		if (MainWidgetClass)
@@ -35,6 +36,9 @@ void AMazeGameMode::BeginPlay()
 		// Hide and lock mouse crusor
 		Controller->bShowMouseCursor = false;
 		Controller->SetInputMode(FInputModeGameOnly());
+
+		// Pause the game at beginning
+		GetWorldTimerManager().SetTimerForNextTick(this, &AMazeGameMode::TogglePause);
 	}
 
 }
@@ -64,13 +68,17 @@ void AMazeGameMode::UpdateTimer()
 	TimerVal += 1.0f;
 	
 	// Update timer value on widget
-	MainWidgetInstance->UpdateTimer(TimerVal);
+	if (MainWidgetInstance)
+	{
+		MainWidgetInstance->UpdateTimer(TimerVal);
+	}
 
 }
 
 void AMazeGameMode::EndTimer()
 {
 	GetWorldTimerManager().ClearTimer(MazeTimerHandle);
+	Win();
 
 }
 
@@ -88,8 +96,10 @@ void AMazeGameMode::ResumeTimer()
 
 void AMazeGameMode::StartLevel()
 {
-	bPaused = false;
-	UGameplayStatics::SetGamePaused(GetWorld(), false);
+	// Update identifier
+	bStarted = true;
+
+	TogglePause();
 
 }
 
@@ -97,25 +107,78 @@ void AMazeGameMode::RestartLevel()
 {
 	if (UWorld* CurrentWorld = GetWorld())
 	{
-		// Reload the current level
-		FName CurrentLevelName = *CurrentWorld->GetName();
-		UGameplayStatics::OpenLevel(CurrentWorld, CurrentLevelName);
+		if (bStarted == true && bPaused == true)
+		{
+			// Reload the current level
+			FName CurrentLevelName = *CurrentWorld->GetName();
+			UGameplayStatics::OpenLevel(CurrentWorld, CurrentLevelName);
+		}
 	}
 
 }
 
 void AMazeGameMode::TogglePause()
 {
-	if (bPaused == true) {
+	if (bPaused == true && bStarted == true && bWin == false) {
+		// Update identifier
 		bPaused = false;
+
+		// Update game world
 		UGameplayStatics::SetGamePaused(GetWorld(), false);
 
-	}
-	else
-	{
-		bPaused = true;
-		UGameplayStatics::SetGamePaused(GetWorld(), true);
+		// Update UI
+		MainWidgetInstance->HideAllWidgets();
+		MainWidgetInstance->ChangeWidgetVisibilityByName(TEXT("TimerText"), ESlateVisibility::Visible);
+
+		if (bCheating)
+		{
+			MainWidgetInstance->ChangeWidgetVisibilityByName(TEXT("CheatText"), ESlateVisibility::Visible);
+		}
+
+		if (bTopDownCamera)
+		{
+			MainWidgetInstance->ChangeWidgetVisibilityByName(TEXT("ResetText"), ESlateVisibility::Visible);
+		}
 
 	}
+	else if (bPaused == false)
+	{
+		// Update identifier
+		bPaused = true;
+
+		// Update game world
+		UGameplayStatics::SetGamePaused(GetWorld(), true);
+		
+		// Update UI
+		MainWidgetInstance->HideAllWidgets();
+
+		if (bStarted == false)
+		{
+			MainWidgetInstance->ChangeWidgetVisibilityByName(TEXT("StartText"), ESlateVisibility::Visible);
+		}
+		else if (bWin == true)
+		{
+			MainWidgetInstance->ChangeWidgetVisibilityByName(TEXT("WinOverlay"), ESlateVisibility::Visible);
+		}
+		else
+		{
+			MainWidgetInstance->ChangeWidgetVisibilityByName(TEXT("PauseText"), ESlateVisibility::Visible);
+		}
+	}
+
+}
+
+void AMazeGameMode::Win()
+{
+	// Update identifier
+	bWin = true;
+
+	// Update UI
+	if (MainWidgetInstance)
+	{
+		MainWidgetInstance->UpdateWinTimer();
+	}
+
+	TogglePause();
 
 }

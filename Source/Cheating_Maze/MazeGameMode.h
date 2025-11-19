@@ -8,7 +8,9 @@
 #include "TimerManager.h"
 #include "MazeGameMode.generated.h"
 
+
 class UMainUserWidget;
+
 
 UCLASS()
 class CHEATING_MAZE_API AMazeGameMode : public AGameModeBase
@@ -21,6 +23,9 @@ public:
 
 protected:
 	FTimerHandle MazeTimerHandle;
+
+	// Player controller
+	TObjectPtr<APlayerController> Controller;
 	
 	// Update the maze timer
 	UFUNCTION()
@@ -37,7 +42,16 @@ public:
 	bool bWin = false;
 
 	UPROPERTY()
+	bool bStarted = false;
+
+	UPROPERTY()
 	bool bPaused = false;
+
+	UPROPERTY()
+	bool bCheating = false;
+
+	UPROPERTY()
+	bool bTopDownCamera = false;
 
 	UPROPERTY()
 	float TimerVal = 0.0f;
@@ -79,5 +93,9 @@ public:
 	// Pause or resume the game
 	UFUNCTION()
 	void TogglePause();
+
+	// Show win message
+	UFUNCTION()
+	void Win();
 	
 };
