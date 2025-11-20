@@ -7,10 +7,11 @@
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
 #include "InputActionValue.h"
-#include "MazeGameMode.h"
 #include "MazePlayerCharacter.generated.h"
 
 
+class AMazeGameMode;
+class AMazeLevelManager;
 class UInputMappingContext;
 class UInputAction;
 class UInputComponent;
@@ -31,7 +32,12 @@ protected:
 	virtual void BeginPlay() override;
 
 	// Game mode
+	UPROPERTY()
 	TObjectPtr<AMazeGameMode> MazeGameMode;
+
+	// Level manager instance
+	UPROPERTY()
+	TObjectPtr<AMazeLevelManager> LevelManager;
 	
 	// Player moving speed
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Movement")
@@ -70,6 +76,14 @@ public:
 
 	// Called to bind functionality to input
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
+
+	// Check if the player can interact with an interactable
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	FString InteractableType = TEXT("");
+
+	// Let other class set level manager instance
+	UFUNCTION()
+	void SetLevelManager(AMazeLevelManager* Instance);
 	
 	// Handles two types of movement
 	UFUNCTION()

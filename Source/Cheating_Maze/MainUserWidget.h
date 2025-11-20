@@ -11,6 +11,15 @@ UCLASS()
 class CHEATING_MAZE_API UMainUserWidget : public UUserWidget
 {
 	GENERATED_BODY()
+
+protected:
+	// In-game state widget visibility status
+	UPROPERTY()
+	TArray<UWidget*> VisibleWidgetsInGame;
+	
+	// Check-object state widget visibility status
+	UPROPERTY()
+	TArray<UWidget*> VisibleWidgetsCheck;
 	
 public:
 	// Update timer
@@ -28,5 +37,13 @@ public:
 	// Hide all text boxes
 	UFUNCTION(BlueprintCallable)
 	void HideAllWidgets();
+
+	// Record widget visibility of the current status
+	UFUNCTION(BlueprintCallable)
+	void RecordWidgetsVisibility();
+
+	// Restore widget visibility of the current status
+	UFUNCTION(BlueprintCallable)
+	void RestoreWidgetsVisibility();
 
 };

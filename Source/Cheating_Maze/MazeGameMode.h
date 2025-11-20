@@ -4,12 +4,14 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/GameModeBase.h"
-#include "MainUserWidget.h"
 #include "TimerManager.h"
 #include "MazeGameMode.generated.h"
 
 
+class AMazePlayerCharacter;
+class AMazeLevelManager;
 class UMainUserWidget;
+class UGameplayStatics;
 
 
 UCLASS()
@@ -22,11 +24,21 @@ public:
 	AMazeGameMode();
 
 protected:
+	UPROPERTY()
+	float TimerVal = 0.0f;
+
+	// Timer handle
+	UPROPERTY()
 	FTimerHandle MazeTimerHandle;
 
 	// Player controller
-	TObjectPtr<APlayerController> Controller;
-	
+	UPROPERTY()
+	TObjectPtr<APlayerController> PlayerController;
+
+	// Player character
+	UPROPERTY()
+	TObjectPtr<AMazePlayerCharacter> PlayerCharacter;
+
 	// Update the maze timer
 	UFUNCTION()
 	void UpdateTimer();
@@ -37,7 +49,7 @@ public:
 
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
-	
+
 	UPROPERTY()
 	bool bWin = false;
 
@@ -53,16 +65,19 @@ public:
 	UPROPERTY()
 	bool bTopDownCamera = false;
 
-	UPROPERTY()
-	float TimerVal = 0.0f;
-
 	// Is timer on
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Timer")
-	bool TimerStatus = false;
+	bool bTimer = false;
+	
+	// Level manager instance
+	UPROPERTY()
+	TObjectPtr<AMazeLevelManager> LevelManager;
 
+	// Widget class to be used to create an instance
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "UI")
 	TSubclassOf<UMainUserWidget> MainWidgetClass;
-
+	
+	// Main UI widget
 	UPROPERTY()
 	TObjectPtr<UMainUserWidget> MainWidgetInstance;
 

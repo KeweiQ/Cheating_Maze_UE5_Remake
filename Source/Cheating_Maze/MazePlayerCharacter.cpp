@@ -3,6 +3,8 @@
 #include "MazePlayerCharacter.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Kismet/GameplayStatics.h"
+#include "MazeGameMode.h"
+#include "MazeLevelManager.h"
 
 
 // Sets default values
@@ -19,6 +21,9 @@ void AMazePlayerCharacter::BeginPlay()
 	Super::BeginPlay();
 
 	check(GEngine != nullptr);
+	
+	// Get current game mode
+	MazeGameMode = CastChecked<AMazeGameMode>(UGameplayStatics::GetGameMode(this));
 
 	// Set player move speed
 	GetCharacterMovement()->MaxWalkSpeed = MaxMoveSpeed;
@@ -32,9 +37,6 @@ void AMazePlayerCharacter::BeginPlay()
 		}
 	}
 
-	// Get current game mode
-	MazeGameMode = CastChecked<AMazeGameMode>(UGameplayStatics::GetGameMode(this));
-	
 }
 
 // Called every frame
@@ -44,6 +46,11 @@ void AMazePlayerCharacter::Tick(float DeltaTime)
 
 }
 
+void AMazePlayerCharacter::SetLevelManager(AMazeLevelManager* Instance)
+{
+	LevelManager = Instance;
+}
+
 // Called to bind functionality to input
 void AMazePlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 {
@@ -51,8 +58,8 @@ void AMazePlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInpu
 	{
 		// Bind Movement Actions
 		EnhancedInputComponent->BindAction(MoveAction, ETriggerEvent::Triggered, this, &AMazePlayerCharacter::Move);
-		EnhancedInputComponent->BindAction(MoveAction, ETriggerEvent::Started, this, &AMazePlayerCharacter::OnInteractPressed);
-		EnhancedInputComponent->BindAction(MoveAction, ETriggerEvent::Started, this, &AMazePlayerCharacter::OnCancelPressed);
+		EnhancedInputComponent->BindAction(InteractAction, ETriggerEvent::Started, this, &AMazePlayerCharacter::OnInteractPressed);
+		EnhancedInputComponent->BindAction(CancelAction, ETriggerEvent::Started, this, &AMazePlayerCharacter::OnCancelPressed);
 		EnhancedInputComponent->BindAction(StartAction, ETriggerEvent::Started, this, &AMazePlayerCharacter::OnStartPressed);
 		EnhancedInputComponent->BindAction(RestartAction, ETriggerEvent::Started, this, &AMazePlayerCharacter::OnRestartPressed);
 		EnhancedInputComponent->BindAction(TogglePauseAction, ETriggerEvent::Started, this, &AMazePlayerCharacter::OnPausePressed);
@@ -81,9 +88,12 @@ void AMazePlayerCharacter::Move(const FInputActionValue& Value)
 // Handles interactions with interactbles
 void AMazePlayerCharacter::OnInteractPressed(const FInputActionValue& Value)
 {
-	if (MazeGameMode)
+	if (InteractableType != TEXT(""))
 	{
-
+		if (MazeGameMode)
+		{
+			LevelManager->Interact(InteractableType);
+		}
 	}
 
 }
@@ -91,9 +101,12 @@ void AMazePlayerCharacter::OnInteractPressed(const FInputActionValue& Value)
 // Reset cheating functions
 void AMazePlayerCharacter::OnCancelPressed(const FInputActionValue& Value)
 {
-	if (MazeGameMode)
+	if (InteractableType != TEXT(""))
 	{
+		if (MazeGameMode)
+		{
 
+		}
 	}
 
 }
