@@ -57,7 +57,7 @@ void AMazeGameMode::BeginPlay()
 				// Setup initial UI
 				MainWidgetInstance->RecordWidgetsVisibility();
 				MainWidgetInstance->HideAllWidgets();
-				MainWidgetInstance->ChangeWidgetVisibilityByName(TEXT("StartText"), ESlateVisibility::Visible);
+				MainWidgetInstance->ChangeWidgetVisibilityByName(TEXT("StartBorder"), ESlateVisibility::Visible);
 			}
 		}
 
@@ -132,7 +132,7 @@ void AMazeGameMode::StartLevel()
 	if (MainWidgetInstance)
 	{
 		MainWidgetInstance->HideAllWidgets();
-		MainWidgetInstance->ChangeWidgetVisibilityByName(TEXT("TimerText"), ESlateVisibility::Visible);
+		MainWidgetInstance->ChangeWidgetVisibilityByName(TEXT("TimerBorder"), ESlateVisibility::Visible);
 	}
 	
 	// Enable player control
@@ -172,7 +172,7 @@ void AMazeGameMode::TogglePause()
 		{
 			MainWidgetInstance->RecordWidgetsVisibility();
 			MainWidgetInstance->HideAllWidgets();
-			MainWidgetInstance->ChangeWidgetVisibilityByName(TEXT("PauseText"), ESlateVisibility::Visible);
+			MainWidgetInstance->ChangeWidgetVisibilityByName(TEXT("PauseBorder"), ESlateVisibility::Visible);
 		}
 	}
 
@@ -201,7 +201,7 @@ void AMazeGameMode::Win()
 	{
 		MainWidgetInstance->UpdateWinTimer();
 		MainWidgetInstance->HideAllWidgets();
-		MainWidgetInstance->ChangeWidgetVisibilityByName(TEXT("WinOverlay"), ESlateVisibility::Visible);
+		MainWidgetInstance->ChangeWidgetVisibilityByName(TEXT("WinBorder"), ESlateVisibility::Visible);
 	}
 	
 	// Disable player control

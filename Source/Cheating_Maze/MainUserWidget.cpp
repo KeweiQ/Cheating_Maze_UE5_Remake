@@ -54,11 +54,9 @@ void UMainUserWidget::RecordWidgetsVisibility()
 				// Store visible widgets info
 				if (Child->GetVisibility() == ESlateVisibility::Visible)
 				{
-					GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Yellow, Child->GetName());
 					VisibleWidgetsToUse.Add(Child);
 					int32 Length = VisibleWidgetsToUse.Num();
 					FString Msg = FString::Printf(TEXT("MyArray length: %d"), Length);
-					GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Yellow, Msg);
 				}
 			}
 		}
@@ -78,7 +76,6 @@ void UMainUserWidget::RestoreWidgetsVisibility()
 		// Set visiblity for all stored widgets
 		for (UWidget* Widget : VisibleWidgetsToUse)
 		{
-			GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Yellow, Widget->GetName());
 			Widget->SetVisibility(ESlateVisibility::Visible);
 		}
 

@@ -55,13 +55,13 @@ protected:
 	UFUNCTION()
 	void ToggleLight();
 
-	// Toggle the solution path
-	UFUNCTION()
-	void TogglePath();
-
 	// Toggle the player camera (FP or top-down)
 	UFUNCTION()
 	void ToggleCamera();
+
+	// Toggle the solution path
+	UFUNCTION()
+	void TogglePath();
 
 public:	
 	// Called every frame
@@ -87,12 +87,25 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Cheat")
 	TObjectPtr<ASkyLight> SkyLight;
 
+	// Cheating interactors
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Cheat")
+	TArray<AActor*> Interactors;
+
 	// Let other class set widget instance once it creates it
 	UFUNCTION()
 	void SetMainWidgetInstance(UMainUserWidget* Instance);
-	
+
 	// Interact with an interactable
 	UFUNCTION()
-	void Interact(FString& InteractableType);
+	void Interact(FString& InteractableType, AActor* Interactor);
+
+
+	// Cancel all enabled cheatings
+	UFUNCTION()
+	void CancelCheating();
+	
+	// Reset the player camera to first-person view
+	UFUNCTION()
+	void ResetCamera();
 
 };

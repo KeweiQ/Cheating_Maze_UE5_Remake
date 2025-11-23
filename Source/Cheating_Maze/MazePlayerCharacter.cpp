@@ -1,6 +1,9 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 #include "MazePlayerCharacter.h"
+#include "Components/CapsuleComponent.h"
+#include "Components/SpotLightComponent.h"
+#include "Camera/CameraComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Kismet/GameplayStatics.h"
 #include "MazeGameMode.h"
@@ -13,6 +16,25 @@ AMazePlayerCharacter::AMazePlayerCharacter()
  	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 
+	// Get player root capsule component
+	UCapsuleComponent* Capsule = GetCapsuleComponent();
+
+	// Create player components
+	PlayerMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("PlayerMesh"));
+	check(PlayerMesh != nullptr);
+	PlayerSpotLight = CreateDefaultSubobject<USpotLightComponent>(TEXT("PlayerSpotLight"));
+	check(PlayerSpotLight != nullptr);
+	FPCamera = CreateDefaultSubobject<UCameraComponent>(TEXT("FPCamera"));
+	check(FPCamera != nullptr);
+	TopDownCamera = CreateDefaultSubobject<UCameraComponent>(TEXT("TopDownCamera"));
+	check(TopDownCamera != nullptr);
+
+	// Attach the new components
+	PlayerMesh->SetupAttachment(Capsule);
+	PlayerSpotLight->SetupAttachment(PlayerMesh);
+	FPCamera->SetupAttachment(PlayerMesh);
+	TopDownCamera->SetupAttachment(PlayerMesh);
+
 }
 
 // Called when the game starts or when spawned
@@ -23,7 +45,7 @@ void AMazePlayerCharacter::BeginPlay()
 	check(GEngine != nullptr);
 	
 	// Get current game mode
-	MazeGameMode = CastChecked<AMazeGameMode>(UGameplayStatics::GetGameMode(this));
+	GameMode = CastChecked<AMazeGameMode>(UGameplayStatics::GetGameMode(this));
 
 	// Set player move speed
 	GetCharacterMovement()->MaxWalkSpeed = MaxMoveSpeed;
@@ -60,6 +82,7 @@ void AMazePlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInpu
 		EnhancedInputComponent->BindAction(MoveAction, ETriggerEvent::Triggered, this, &AMazePlayerCharacter::Move);
 		EnhancedInputComponent->BindAction(InteractAction, ETriggerEvent::Started, this, &AMazePlayerCharacter::OnInteractPressed);
 		EnhancedInputComponent->BindAction(CancelAction, ETriggerEvent::Started, this, &AMazePlayerCharacter::OnCancelPressed);
+		EnhancedInputComponent->BindAction(ResetAction, ETriggerEvent::Started, this, &AMazePlayerCharacter::OnResetPressed);
 		EnhancedInputComponent->BindAction(StartAction, ETriggerEvent::Started, this, &AMazePlayerCharacter::OnStartPressed);
 		EnhancedInputComponent->BindAction(RestartAction, ETriggerEvent::Started, this, &AMazePlayerCharacter::OnRestartPressed);
 		EnhancedInputComponent->BindAction(TogglePauseAction, ETriggerEvent::Started, this, &AMazePlayerCharacter::OnPausePressed);
@@ -79,8 +102,16 @@ void AMazePlayerCharacter::Move(const FInputActionValue& Value)
 		// Add forward and back movement
 		AddMovementInput(GetActorForwardVector(), MovementValue.Y);
 
-		// Add left and right rotation
-		AddControllerYawInput(MovementValue.X * TurnRate * GetWorld()->GetDeltaSeconds());
+		if (GameMode->bCamera == false)
+		{
+			// Add left and right rotation
+			AddControllerYawInput(MovementValue.X * TurnRate * GetWorld()->GetDeltaSeconds());
+		}
+		else
+		{
+			// Add left and right movement
+			AddMovementInput(GetActorRightVector(), MovementValue.X); ///////////////////////////
+		}
 	}
 
 }
@@ -90,23 +121,30 @@ void AMazePlayerCharacter::OnInteractPressed(const FInputActionValue& Value)
 {
 	if (InteractableType != TEXT(""))
 	{
-		if (MazeGameMode)
+		if (LevelManager)
 		{
-			LevelManager->Interact(InteractableType);
+			LevelManager->Interact(InteractableType, Interactor);
 		}
 	}
 
 }
 
-// Reset cheating functions
+// Cancel all enabled cheatings
 void AMazePlayerCharacter::OnCancelPressed(const FInputActionValue& Value)
 {
-	if (InteractableType != TEXT(""))
+	if (LevelManager)
 	{
-		if (MazeGameMode)
-		{
+		LevelManager->CancelCheating();
+	}
 
-		}
+}
+
+// Reset camera to first-person view
+void AMazePlayerCharacter::OnResetPressed(const FInputActionValue& Value)
+{
+	if (LevelManager)
+	{
+		LevelManager->ResetCamera();
 	}
 
 }
@@ -114,9 +152,9 @@ void AMazePlayerCharacter::OnCancelPressed(const FInputActionValue& Value)
 // Start the game
 void AMazePlayerCharacter::OnStartPressed(const FInputActionValue& Value)
 {
-	if (MazeGameMode)
+	if (GameMode)
 	{
-		MazeGameMode->StartLevel();
+		GameMode->StartLevel();
 	}
 
 }
@@ -124,9 +162,9 @@ void AMazePlayerCharacter::OnStartPressed(const FInputActionValue& Value)
 // Restart the game
 void AMazePlayerCharacter::OnRestartPressed(const FInputActionValue& Value)
 {
-	if (MazeGameMode)
+	if (GameMode)
 	{
-		MazeGameMode->RestartLevel();
+		GameMode->RestartLevel();
 	}
 
 }
@@ -134,9 +172,9 @@ void AMazePlayerCharacter::OnRestartPressed(const FInputActionValue& Value)
 // Pause or resume the game
 void AMazePlayerCharacter::OnPausePressed(const FInputActionValue& Value)
 {
-	if (MazeGameMode)
+	if (GameMode)
 	{
-		MazeGameMode->TogglePause();
+		GameMode->TogglePause();
 	}
 
 }

@@ -60,10 +60,17 @@ public:
 	bool bPaused = false;
 
 	UPROPERTY()
-	bool bCheating = false;
+	bool bLight = false;
 
 	UPROPERTY()
-	bool bTopDownCamera = false;
+	bool bCamera = false;
+
+	UPROPERTY()
+	bool bMap = false;
+
+	UPROPERTY()
+	bool bPath = false;
+
 
 	// Is timer on
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Timer")
@@ -78,7 +85,7 @@ public:
 	TSubclassOf<UMainUserWidget> MainWidgetClass;
 	
 	// Main UI widget
-	UPROPERTY()
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "UI")
 	TObjectPtr<UMainUserWidget> MainWidgetInstance;
 
 	// Start maze timer when entering the maze

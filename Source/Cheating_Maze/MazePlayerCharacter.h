@@ -15,6 +15,8 @@ class AMazeLevelManager;
 class UInputMappingContext;
 class UInputAction;
 class UInputComponent;
+class USpotLightComponent;
+class UCameraComponent;
 class UCharacterMovementComponent;
 
 
@@ -33,7 +35,7 @@ protected:
 
 	// Game mode
 	UPROPERTY()
-	TObjectPtr<AMazeGameMode> MazeGameMode;
+	TObjectPtr<AMazeGameMode> GameMode;
 
 	// Level manager instance
 	UPROPERTY()
@@ -62,6 +64,9 @@ protected:
 	TObjectPtr<UInputAction> CancelAction;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
+	TObjectPtr<UInputAction> ResetAction;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
 	TObjectPtr<UInputAction> StartAction;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
@@ -81,6 +86,26 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	FString InteractableType = TEXT("");
 
+	// Check if the player can interact with an interactable
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	TObjectPtr<AActor> Interactor = nullptr;
+
+	// Player mesh component
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	TObjectPtr<UStaticMeshComponent> PlayerMesh;
+
+	// Player spot light ccomponent
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	TObjectPtr<USpotLightComponent> PlayerSpotLight;
+
+	// First-person camera
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	TObjectPtr<UCameraComponent> FPCamera;
+
+	// Top-down camera
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	TObjectPtr<UCameraComponent> TopDownCamera;
+
 	// Let other class set level manager instance
 	UFUNCTION()
 	void SetLevelManager(AMazeLevelManager* Instance);
@@ -93,9 +118,13 @@ public:
 	UFUNCTION()
 	void OnInteractPressed(const FInputActionValue& Value);
 
-	// Reset cheating functions
+	// Cancel all enabled cheatings
 	UFUNCTION()
 	void OnCancelPressed(const FInputActionValue& Value);
+
+	// Reset camera to first-person view
+	UFUNCTION()
+	void OnResetPressed(const FInputActionValue& Value);
 
 	// Start the game
 	UFUNCTION()
