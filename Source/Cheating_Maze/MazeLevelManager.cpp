@@ -1,6 +1,3 @@
-// Fill out your copyright notice in the Description page of Project Settings.
-
-
 #include "MazeLevelManager.h"
 #include "Camera/CameraComponent.h"
 #include "Engine/SkyLight.h"
@@ -54,7 +51,7 @@ void AMazeLevelManager::SetMainWidgetInstance(UMainUserWidget* Instance)
 
 void AMazeLevelManager::Interact(FString& InteractableType, AActor* Interactor)
 {
-	if (GameMode->bPaused == false && PlayerController && MainWidgetInstance)
+	if (GameMode->GetPauseState() == false && PlayerController && MainWidgetInstance)
 	{
 		if (InteractableType == TEXT("Hint"))
 		{
@@ -65,12 +62,12 @@ void AMazeLevelManager::Interact(FString& InteractableType, AActor* Interactor)
 			// Call corresponding cheating functions
 			if (InteractableType == TEXT("Light"))
 			{
-				GameMode->bLight = true;
+				bLight = true;
 				ToggleLight();
 			}
 			else if (InteractableType == TEXT("Camera"))
 			{
-				GameMode->bCamera = true;
+				bCamera = true;
 				ToggleCamera();
 			}
 			else if (InteractableType == TEXT("Map"))
@@ -79,7 +76,7 @@ void AMazeLevelManager::Interact(FString& InteractableType, AActor* Interactor)
 			}
 			else if (InteractableType == TEXT("Path"))
 			{
-				GameMode->bPath = true;
+				bPath = true;
 				TogglePath();
 			}
 			
@@ -132,80 +129,57 @@ void AMazeLevelManager::ToggleInspect(FName ObjectName)
 
 void AMazeLevelManager::ToggleLight()
 {
-	if (DirectionalLight->IsHidden())
+	if (DirectionalLight)
 	{
-		// Change skybox
-		StellarSkybox->SetActorHiddenInGame(true);
-		SpaceSkybox->SetActorHiddenInGame(false);
+		bool bIsHidden = DirectionalLight->IsHidden();
 
-		// Turn on map lights
-		DirectionalLight->SetActorHiddenInGame(false);
+		// Toggle skybox hidden status
+		StellarSkybox->SetActorHiddenInGame(bIsHidden);
+		SpaceSkybox->SetActorHiddenInGame(!bIsHidden);
+
+		// Toggle map light hidden status
+		DirectionalLight->SetActorHiddenInGame(!bIsHidden);
 		if (USkyLightComponent* SkyLightComponent = Cast<USkyLightComponent>(SkyLight->GetLightComponent()))
 		{
 			SkyLightComponent->RecaptureSky();
 		}
-		SkyLight->SetActorHiddenInGame(false);
+		SkyLight->SetActorHiddenInGame(!bIsHidden);
 
-		// Turn off player spot light
-		PlayerCharacter->PlayerSpotLight->SetVisibility(false);
+		// Toggle player spot light status
+		PlayerCharacter->PlayerSpotLight->SetVisibility(!bIsHidden);
 
 		// Update UI
-		MainWidgetInstance->ChangeWidgetVisibilityByName(TEXT("CheatBorder"), ESlateVisibility::Visible);
-
-	}
-	else
-	{
-		// Change skybox
-		StellarSkybox->SetActorHiddenInGame(false);
-		SpaceSkybox->SetActorHiddenInGame(true);
-
-		// Turn on map lights
-		DirectionalLight->SetActorHiddenInGame(true);
-		if (USkyLightComponent* SkyLightComponent = Cast<USkyLightComponent>(SkyLight->GetLightComponent()))
+		if (bIsHidden)
 		{
-			SkyLightComponent->RecaptureSky();
+			MainWidgetInstance->ChangeWidgetVisibilityByName(TEXT("CheatBorder"), ESlateVisibility::Visible);
 		}
-		SkyLight->SetActorHiddenInGame(true);
-
-		// Turn off player spot light
-		PlayerCharacter->PlayerSpotLight->SetVisibility(true);
 	}
 
 }
 
 void AMazeLevelManager::TogglePath()
 {
-	if (Path->IsHidden())
+	if (Path)
 	{
-		// Update parent actor hidden status
-		Path->SetActorHiddenInGame(false);
+		bool bIsHidden = Path->IsHidden();
+
+		// Toggle parent actor hidden status
+		Path->SetActorHiddenInGame(!bIsHidden);
 
 		// Get attached actors
 		TArray<AActor*> Chidren;
 		Path->GetAttachedActors(Chidren);
 
-		// Set attached actors hidden status
+		// Toggle attached actors hidden status
 		for (AActor* Child : Chidren)
 		{
-			Child->SetActorHiddenInGame(false);
+			Child->SetActorHiddenInGame(!bIsHidden);
 		}
 
 		// Update UI
-		MainWidgetInstance->ChangeWidgetVisibilityByName(TEXT("CheatBorder"), ESlateVisibility::Visible);
-	}
-	else
-	{
-		// Update parent actor hidden status
-		Path->SetActorHiddenInGame(true);
-
-		// Get attached actors
-		TArray<AActor*> Chidren;
-		Path->GetAttachedActors(Chidren);
-
-		// Set attached actors hidden status
-		for (AActor* Child : Chidren)
+		if (bIsHidden)
 		{
-			Child->SetActorHiddenInGame(true);
+			MainWidgetInstance->ChangeWidgetVisibilityByName(TEXT("CheatBorder"), ESlateVisibility::Visible);
 		}
 	}
 
@@ -216,20 +190,20 @@ void AMazeLevelManager::ToggleCamera()
 	if (PlayerCharacter->FPCamera && PlayerCharacter->TopDownCamera)
 	{
 		// Toggle camera activation
-		const bool bActive = PlayerCharacter->FPCamera->IsActive();
-		PlayerCharacter->FPCamera->SetActive(!bActive);
-		PlayerCharacter->TopDownCamera->SetActive(bActive);
+		const bool bIsActive = PlayerCharacter->FPCamera->IsActive();
+		PlayerCharacter->FPCamera->SetActive(!bIsActive);
+		PlayerCharacter->TopDownCamera->SetActive(bIsActive);
 
 		// Update UI
-		ESlateVisibility NewVisibility = bActive ? ESlateVisibility::Visible : ESlateVisibility::Hidden;
+		ESlateVisibility NewVisibility = bIsActive ? ESlateVisibility::Visible : ESlateVisibility::Hidden;
 		MainWidgetInstance->ChangeWidgetVisibilityByName(TEXT("ResetBorder"), NewVisibility);
-		if (bActive)
+		if (bIsActive)
 		{
 			MainWidgetInstance->ChangeWidgetVisibilityByName(TEXT("CheatBorder"), ESlateVisibility::Visible);
 		}
 
 		// Rotate player if enabling top-down camera
-		if (bActive)
+		if (bIsActive)
 		{
 			FVector Dir = FVector::RightVector;
 			FRotator Rotator = Dir.Rotation();
@@ -248,31 +222,28 @@ void AMazeLevelManager::ToggleCamera()
 
 void AMazeLevelManager::CancelCheating()
 {
-	if (GameMode->bLight == true)
+	if (bLight == true)
 	{
-		GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Green, TEXT("CANCEL LIGHT"));
 		// Update identifier
-		GameMode->bLight = false;
+		bLight = false;
 
 		// Reset to first-person camera
 		ToggleLight();
 	}
 
-	if (GameMode->bCamera == true)
+	if (bCamera == true)
 	{
-		GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Green, TEXT("CANCEL CAMERA"));
 		// Update identifier
-		GameMode->bCamera = false;
+		bCamera = false;
 
 		// Reset to first-person camera
 		ToggleCamera();
 	}
 
-	if (GameMode->bPath == true)
+	if (bPath == true)
 	{
-		GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Green, TEXT("CANCEL PATH"));
 		// Update identifier
-		GameMode->bPath = false;
+		bPath = false;
 
 		// Reset to first-person camera
 		TogglePath();
@@ -292,10 +263,10 @@ void AMazeLevelManager::CancelCheating()
 
 void AMazeLevelManager::ResetCamera()
 {
-	if (GameMode->bCamera == true)
+	if (bCamera == true)
 	{
 		// Update identifier
-		GameMode->bCamera = false;
+		bCamera = false;
 
 		// Reset to first-person camera
 		ToggleCamera();

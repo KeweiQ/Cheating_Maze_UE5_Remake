@@ -1,5 +1,3 @@
-// Fill out your copyright notice in the Description page of Project Settings.
-
 #pragma once
 
 #include "CoreMinimal.h"
@@ -30,7 +28,9 @@ public:
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
-	
+
+	/* ---------- References to game related objects ---------- */
+
 	// Game Mode
 	UPROPERTY()
 	TObjectPtr<AMazeGameMode> GameMode;
@@ -46,6 +46,22 @@ protected:
 	// Player controller
 	UPROPERTY()
 	TObjectPtr<APlayerController> PlayerController;
+
+	/* ---------- Cheat state identifiers ---------- */
+
+	UPROPERTY()
+	bool bLight = false;
+
+	UPROPERTY()
+	bool bCamera = false;
+
+	UPROPERTY()
+	bool bMap = false;
+
+	UPROPERTY()
+	bool bPath = false;
+
+	/* ---------- Cheat controllers ---------- */
 
 	// Toggle the object inspect state
 	UFUNCTION()
@@ -66,6 +82,8 @@ protected:
 public:	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
+	
+	/* ---------- References to cheat related objects ---------- */
 
 	// Solution path actor
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Cheat")
@@ -90,15 +108,12 @@ public:
 	// Cheating interactors
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Cheat")
 	TArray<AActor*> Interactors;
-
-	// Let other class set widget instance once it creates it
-	UFUNCTION()
-	void SetMainWidgetInstance(UMainUserWidget* Instance);
+	
+	/* ---------- Callable cheat interfaces ---------- */
 
 	// Interact with an interactable
 	UFUNCTION()
 	void Interact(FString& InteractableType, AActor* Interactor);
-
 
 	// Cancel all enabled cheatings
 	UFUNCTION()
@@ -107,5 +122,11 @@ public:
 	// Reset the player camera to first-person view
 	UFUNCTION()
 	void ResetCamera();
+	
+	/* ---------- Other helper functions ---------- */
+
+	// Let other class set widget instance once it creates it
+	UFUNCTION()
+	void SetMainWidgetInstance(UMainUserWidget* Instance);
 
 };

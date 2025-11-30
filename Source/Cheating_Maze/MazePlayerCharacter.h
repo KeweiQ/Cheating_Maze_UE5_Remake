@@ -1,8 +1,7 @@
-// Fill out your copyright notice in the Description page of Project Settings.
-
 #pragma once
 
 #include "CoreMinimal.h"
+#include "TimerManager.h"
 #include "GameFramework/Character.h"
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
@@ -18,6 +17,7 @@ class UInputComponent;
 class USpotLightComponent;
 class UCameraComponent;
 class UCharacterMovementComponent;
+class UMainUserWidget;
 
 
 UCLASS()
@@ -33,6 +33,8 @@ protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
+	/* ---------- References to game related objects ---------- */
+
 	// Game mode
 	UPROPERTY()
 	TObjectPtr<AMazeGameMode> GameMode;
@@ -40,7 +42,23 @@ protected:
 	// Level manager instance
 	UPROPERTY()
 	TObjectPtr<AMazeLevelManager> LevelManager;
-	
+
+	/* --------------- Setup related functions --------------- */
+
+	// Generate components to setup player
+	UFUNCTION()
+	void SetupPlayer();
+
+	// Cast and setup player controller
+	UFUNCTION()
+	void SetupController();
+
+	// Generate widget components to setup UI
+	UFUNCTION()
+	void SetupUI();
+
+	/* --------------- Movement related variables and functions --------------- */
+
 	// Player moving speed
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Movement")
 	float MaxMoveSpeed = 600.0f;
@@ -48,6 +66,22 @@ protected:
 	// Player turning rate
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Movement")
 	float TurnRate = 45.0f;
+
+	// Handles two types of movement
+	UFUNCTION()
+	void Move(const FInputActionValue& Value);
+
+	/* --------------- Inteactor type detection variables --------------- */
+
+	// Check if the player can interact with an interactable
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	FString InteractableType = TEXT("");
+
+	// Check if the player can interact with an interactable
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	TObjectPtr<AActor> Interactor = nullptr;
+
+	/* --------------- References to input actions --------------- */
 
 	// Input mapping context
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
@@ -74,45 +108,8 @@ protected:
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
 	TObjectPtr<UInputAction> TogglePauseAction;
-
-public:	
-	// Called every frame
-	virtual void Tick(float DeltaTime) override;
-
-	// Called to bind functionality to input
-	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
-
-	// Check if the player can interact with an interactable
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	FString InteractableType = TEXT("");
-
-	// Check if the player can interact with an interactable
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	TObjectPtr<AActor> Interactor = nullptr;
-
-	// Player mesh component
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	TObjectPtr<UStaticMeshComponent> PlayerMesh;
-
-	// Player spot light ccomponent
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	TObjectPtr<USpotLightComponent> PlayerSpotLight;
-
-	// First-person camera
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	TObjectPtr<UCameraComponent> FPCamera;
-
-	// Top-down camera
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	TObjectPtr<UCameraComponent> TopDownCamera;
-
-	// Let other class set level manager instance
-	UFUNCTION()
-	void SetLevelManager(AMazeLevelManager* Instance);
 	
-	// Handles two types of movement
-	UFUNCTION()
-	void Move(const FInputActionValue& Value);
+	/* --------------- Input action response functions --------------- */
 
 	// Handles interactions with interactbles
 	UFUNCTION()
@@ -137,5 +134,82 @@ public:
 	// Pause or resume the game
 	UFUNCTION()
 	void OnPausePressed(const FInputActionValue& Value);
+
+	/* --------------- Timer related variables --------------- */
+
+	UPROPERTY()
+	float TimerVal = 0.0f;
+
+	// Timer handle
+	UPROPERTY()
+	FTimerHandle MazeTimerHandle;
+
+	/* --------------- Timer control functions --------------- */
+
+	// Start maze timer when entering the maze
+	UFUNCTION(BlueprintCallable, Category = "Timer")
+	void StartTimer();
+
+	// Update the maze timer
+	UFUNCTION()
+	void UpdateTimer();
+
+	// End maze timer when reaching the exit
+	UFUNCTION(BlueprintCallable, Category = "Timer")
+	void EndTimer();
+
+	// Pause maze timer when pausing the game
+	UFUNCTION(BlueprintCallable, Category = "Timer")
+	void PauseTimer();
+
+	// Resume maze timer when resuming the game
+	UFUNCTION(BlueprintCallable, Category = "Timer")
+	void ResumeTimer();
+
+public:	
+	// Called every frame
+	virtual void Tick(float DeltaTime) override;
+
+	// Called to bind functionality to input
+	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
+
+	/* ---------- UI related references ---------- */
+
+	// Widget class to be used to create an instance
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "UI")
+	TSubclassOf<UMainUserWidget> MainWidgetClass;
+
+	// Main UI widget
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "UI")
+	TObjectPtr<UMainUserWidget> MainWidgetInstance;
+
+	/* --------------- Timer related variables accessable by blueprints --------------- */
+
+	// Is timer on
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Timer")
+	bool bTimer = false;
+
+	/* --------------- Player actor components --------------- */
+
+	// Player controller
+	UPROPERTY()
+	TObjectPtr<APlayerController> PlayerController;
+	
+	// Player mesh component
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	TObjectPtr<UStaticMeshComponent> PlayerMesh;
+
+	// Player spot light ccomponent
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	TObjectPtr<USpotLightComponent> PlayerSpotLight;
+
+	// First-person camera
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	TObjectPtr<UCameraComponent> FPCamera;
+
+	// Top-down camera
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	TObjectPtr<UCameraComponent> TopDownCamera;
+	
 
 };

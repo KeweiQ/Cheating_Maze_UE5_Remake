@@ -1,10 +1,7 @@
-// Fill out your copyright notice in the Description page of Project Settings.
-
 #pragma once
 
 #include "CoreMinimal.h"
 #include "GameFramework/GameModeBase.h"
-#include "TimerManager.h"
 #include "MazeGameMode.generated.h"
 
 
@@ -24,85 +21,26 @@ public:
 	AMazeGameMode();
 
 protected:
-	UPROPERTY()
-	float TimerVal = 0.0f;
+	/* ---------- Game state identifiers ---------- */
 
-	// Timer handle
 	UPROPERTY()
-	FTimerHandle MazeTimerHandle;
+	bool bWin = false;
 
-	// Player controller
 	UPROPERTY()
-	TObjectPtr<APlayerController> PlayerController;
+	bool bStart = false;
 
-	// Player character
 	UPROPERTY()
-	TObjectPtr<AMazePlayerCharacter> PlayerCharacter;
-
-	// Update the maze timer
-	UFUNCTION()
-	void UpdateTimer();
+	bool bPause = false;
 
 public:
+
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
-	UPROPERTY()
-	bool bWin = false;
-
-	UPROPERTY()
-	bool bStarted = false;
-
-	UPROPERTY()
-	bool bPaused = false;
-
-	UPROPERTY()
-	bool bLight = false;
-
-	UPROPERTY()
-	bool bCamera = false;
-
-	UPROPERTY()
-	bool bMap = false;
-
-	UPROPERTY()
-	bool bPath = false;
-
-
-	// Is timer on
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Timer")
-	bool bTimer = false;
-	
-	// Level manager instance
-	UPROPERTY()
-	TObjectPtr<AMazeLevelManager> LevelManager;
-
-	// Widget class to be used to create an instance
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "UI")
-	TSubclassOf<UMainUserWidget> MainWidgetClass;
-	
-	// Main UI widget
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "UI")
-	TObjectPtr<UMainUserWidget> MainWidgetInstance;
-
-	// Start maze timer when entering the maze
-	UFUNCTION(BlueprintCallable, Category = "Timer")
-	void StartTimer();
-
-	// End maze timer when reaching the exit
-	UFUNCTION(BlueprintCallable, Category = "Timer")
-	void EndTimer();
-
-	// Pause maze timer when pausing the game
-	UFUNCTION(BlueprintCallable, Category = "Timer")
-	void PauseTimer();
-
-	// Resume maze timer when resuming the game
-	UFUNCTION(BlueprintCallable, Category = "Timer")
-	void ResumeTimer();
+	/* ---------- Game state change ---------- */
 
 	// Start the game
 	UFUNCTION()
@@ -119,5 +57,16 @@ public:
 	// Show win message
 	UFUNCTION()
 	void Win();
-	
+
+	/* ---------- Getters for game state identifiers ---------- */
+
+	UFUNCTION()
+	bool GetWinState();
+
+	UFUNCTION()
+	bool GetStartState();
+
+	UFUNCTION()
+	bool GetPauseState();
+
 };
