@@ -40,6 +40,7 @@ void AMazePlayerCharacter::BeginPlay()
 
 	// Create and setup player HUD
 	SetupUI();
+
 }
 
 // Called every frame
@@ -110,12 +111,38 @@ void AMazePlayerCharacter::SetupUI()
 				MainWidgetInstance->AddToViewport();
 
 				// Show initial timer value
-				MainWidgetInstance->UpdateTimer(TimerVal);
+				MainWidgetInstance->UpdateTimer(MazeTimerVal);
 
-				// Setup initial UI
+				// Record initial UI
 				MainWidgetInstance->RecordWidgetsVisibility();
 				MainWidgetInstance->HideAllWidgets();
-				MainWidgetInstance->ChangeWidgetVisibilityByName(TEXT("StartBorder"), ESlateVisibility::Visible);
+
+				// Show splash screen
+				if (GameMode->GetSplashState() == true)
+				{
+					MainWidgetInstance->ChangeWidgetVisibilityByName(TEXT("SplashBorder"), ESlateVisibility::Visible);
+					MainWidgetInstance->PlaySplashAnimation();
+
+					if (UWorld* World = GetWorld())
+					{
+						World->GetTimerManager().SetTimer(
+							SplashTimerHandle,
+							FTimerDelegate::CreateWeakLambda(this, [this]()
+								{
+									// Update identifier and show initial UI
+									GameMode->SetSplashState(false);
+									MainWidgetInstance->ChangeWidgetVisibilityByName(TEXT("SplashBorder"), ESlateVisibility::Hidden);
+									MainWidgetInstance->ChangeWidgetVisibilityByName(TEXT("StartBorder"), ESlateVisibility::Visible);
+								}),
+							MainWidgetInstance->GetSplashAnimationDuration(),
+							false
+						);
+					}
+				}
+				else
+				{
+					MainWidgetInstance->ChangeWidgetVisibilityByName(TEXT("StartBorder"), ESlateVisibility::Visible);
+				}
 
 				// Send widget instance to level manager
 				if (LevelManager)
@@ -187,7 +214,7 @@ void AMazePlayerCharacter::OnInteractPressed(const FInputActionValue& Value)
 // Cancel all enabled cheatings
 void AMazePlayerCharacter::OnCancelPressed(const FInputActionValue& Value)
 {
-	if (LevelManager)
+	if (GameMode && GameMode->GetWinState() == false && LevelManager)
 	{
 		LevelManager->CancelCheating();
 	}
@@ -197,7 +224,7 @@ void AMazePlayerCharacter::OnCancelPressed(const FInputActionValue& Value)
 // Reset camera to first-person view
 void AMazePlayerCharacter::OnResetPressed(const FInputActionValue& Value)
 {
-	if (LevelManager)
+	if (GameMode && GameMode->GetWinState() == false && LevelManager)
 	{
 		LevelManager->ResetCamera();
 	}
@@ -207,7 +234,7 @@ void AMazePlayerCharacter::OnResetPressed(const FInputActionValue& Value)
 // Start the game
 void AMazePlayerCharacter::OnStartPressed(const FInputActionValue& Value)
 {
-	if (GameMode)
+	if (GameMode && GameMode->GetStartState() == false && GameMode->GetSplashState() == false)
 	{
 		// Update UI
 		if (MainWidgetInstance)
@@ -285,12 +312,12 @@ void AMazePlayerCharacter::StartTimer()
 
 void AMazePlayerCharacter::UpdateTimer()
 {
-	TimerVal += 1.0f;
+	MazeTimerVal += 1.0f;
 
 	// Update timer value on widget
 	if (MainWidgetInstance)
 	{
-		MainWidgetInstance->UpdateTimer(TimerVal);
+		MainWidgetInstance->UpdateTimer(MazeTimerVal);
 	}
 
 }

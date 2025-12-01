@@ -23,14 +23,13 @@ public:
 protected:
 	/* ---------- Game state identifiers ---------- */
 
-	UPROPERTY()
 	bool bWin = false;
 
-	UPROPERTY()
 	bool bStart = false;
 
-	UPROPERTY()
 	bool bPause = false;
+
+	static bool bSplash;
 
 public:
 
@@ -68,5 +67,11 @@ public:
 
 	UFUNCTION()
 	bool GetPauseState();
+
+	UFUNCTION()
+	bool GetSplashState();
+
+	UFUNCTION()
+	void SetSplashState(bool NewState);
 
 };

@@ -2,6 +2,9 @@
 #include "Kismet/GameplayStatics.h"
 
 
+bool AMazeGameMode::bSplash = true;
+
+
 // Sets default values
 AMazeGameMode::AMazeGameMode()
 {
@@ -27,7 +30,10 @@ void AMazeGameMode::Tick(float DeltaTime)
 void AMazeGameMode::StartLevel()
 {
 	// Update identifier
-	bStart = true;
+	if (bStart == false)
+	{
+		bStart = true;
+	}
 
 }
 
@@ -89,5 +95,17 @@ bool AMazeGameMode::GetStartState()
 bool AMazeGameMode::GetPauseState()
 {
 	return bPause;
+
+}
+
+bool AMazeGameMode::GetSplashState()
+{
+	return bSplash;
+
+}
+
+void AMazeGameMode::SetSplashState(bool NewState)
+{
+	bSplash = NewState;
 
 }

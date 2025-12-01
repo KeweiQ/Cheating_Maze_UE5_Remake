@@ -1,6 +1,8 @@
 #include "MainUserWidget.h"
 #include "Components/TextBlock.h"
 #include "Components/PanelWidget.h" 
+#include "Animation/WidgetAnimation.h"
+#include "Animation/UMGSequencePlayer.h"  
 
 
 void UMainUserWidget::ChangeWidgetVisibilityByName(FName WidgetName, ESlateVisibility NewVisibility)
@@ -81,4 +83,25 @@ void UMainUserWidget::RestoreWidgetsVisibility()
 		VisibleWidgetsToUse.Empty();
 	}
 
+}
+
+void UMainUserWidget::PlaySplashAnimation()
+{
+	if (SplashAnimation)
+	{
+		PlayAnimation(SplashAnimation);
+	}
+
+}
+
+float UMainUserWidget::GetSplashAnimationDuration()
+{
+	float duration = 0.0f;
+
+	if (SplashAnimation)
+	{
+		duration = SplashAnimation->GetEndTime() - SplashAnimation->GetStartTime();
+	}
+
+	return duration;
 }

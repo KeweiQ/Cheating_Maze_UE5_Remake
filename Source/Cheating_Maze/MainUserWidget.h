@@ -5,12 +5,17 @@
 #include "MainUserWidget.generated.h"
 
 
+class UWidgetAnimation;
+
+
 UCLASS()
 class CHEATING_MAZE_API UMainUserWidget : public UUserWidget
 {
 	GENERATED_BODY()
 
 protected:
+	/* ---------- Arrays to record widget visibilities in the last stage ---------- */
+
 	// In-game state widget visibility status
 	UPROPERTY()
 	TArray<UWidget*> VisibleWidgetsInGame;
@@ -18,8 +23,15 @@ protected:
 	// Check-object state widget visibility status
 	UPROPERTY()
 	TArray<UWidget*> VisibleWidgetsCheck;
+
+	/* ---------- Splash animation at game start ---------- */
+
+	UPROPERTY(meta = (BindWidgetAnimOptional), Transient)
+	TObjectPtr<UWidgetAnimation> SplashAnimation;
 	
 public:
+	/* ---------- Timer recording how long to beat the maze ---------- */
+
 	// Update timer
 	UFUNCTION(BlueprintImplementableEvent, BlueprintCallable, Category = "UI")
 	void UpdateTimer(float TimerVal);
@@ -27,6 +39,8 @@ public:
 	// Update timer
 	UFUNCTION(BlueprintImplementableEvent, BlueprintCallable, Category = "UI")
 	void UpdateWinTimer();
+
+	/* ---------- Functions related to updating widget visibilities ---------- */
 
 	// Change text box visibility
 	UFUNCTION(BlueprintCallable)
@@ -43,5 +57,15 @@ public:
 	// Restore widget visibility of the current status
 	UFUNCTION(BlueprintCallable)
 	void RestoreWidgetsVisibility();
+
+	/* ---------- Splash animation at game start ---------- */
+
+	// Play a given animation by name
+	UFUNCTION(BlueprintCallable)
+	void PlaySplashAnimation();
+	
+	// Get a given animation' by name's duration
+	UFUNCTION(BlueprintCallable)
+	float GetSplashAnimationDuration();
 
 };

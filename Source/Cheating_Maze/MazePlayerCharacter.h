@@ -65,7 +65,7 @@ protected:
 
 	// Player turning rate
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Movement")
-	float TurnRate = 45.0f;
+	float TurnRate = 60.0f;
 
 	// Handles two types of movement
 	UFUNCTION()
@@ -138,11 +138,15 @@ protected:
 	/* --------------- Timer related variables --------------- */
 
 	UPROPERTY()
-	float TimerVal = 0.0f;
+	float MazeTimerVal = 0.0f;
 
 	// Timer handle
 	UPROPERTY()
 	FTimerHandle MazeTimerHandle;
+
+	// Timer handle
+	UPROPERTY()
+	FTimerHandle SplashTimerHandle;
 
 	/* --------------- Timer control functions --------------- */
 
