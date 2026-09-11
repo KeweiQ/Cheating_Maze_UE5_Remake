@@ -2,6 +2,7 @@
 
 #include "CoreMinimal.h"
 #include "Blueprint/UserWidget.h"
+#include "AudioManager.h"
 #include "MainUserWidget.generated.h"
 
 
@@ -29,6 +30,12 @@ protected:
 	UPROPERTY(meta = (BindWidgetAnimOptional), Transient)
 	TObjectPtr<UWidgetAnimation> SplashAnimation;
 	
+	/* ---------- Game audio ---------- */
+
+	// Audio manager instance
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Audio")
+	TObjectPtr<UAudioManager> AudioManager;
+	
 public:
 	/* ---------- Timer recording how long to beat the maze ---------- */
 
@@ -48,7 +55,7 @@ public:
 
 	// Hide all text boxes
 	UFUNCTION(BlueprintCallable)
-	void HideAllWidgets();
+	void HideAllWidgets(bool bPlayUIAudio);
 
 	// Record widget visibility of the current status
 	UFUNCTION(BlueprintCallable)

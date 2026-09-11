@@ -3,6 +3,7 @@
 #include "Components/PanelWidget.h" 
 #include "Animation/WidgetAnimation.h"
 #include "Animation/UMGSequencePlayer.h"  
+#include <Kismet/GameplayStatics.h>
 
 
 void UMainUserWidget::ChangeWidgetVisibilityByName(FName WidgetName, ESlateVisibility NewVisibility)
@@ -15,7 +16,7 @@ void UMainUserWidget::ChangeWidgetVisibilityByName(FName WidgetName, ESlateVisib
 
 }
 
-void UMainUserWidget::HideAllWidgets()
+void UMainUserWidget::HideAllWidgets(bool bPlayUIAudio)
 {
 	// Get root widget
 	if (UPanelWidget* RootPanel = Cast<UPanelWidget>(GetRootWidget()))
@@ -32,6 +33,11 @@ void UMainUserWidget::HideAllWidgets()
 			}
 		}
 
+		// Play ui sound
+		if (bPlayUIAudio == true && AudioManager && AudioManager->UIAudio)
+		{
+			UGameplayStatics::PlaySound2D(this, AudioManager->UIAudio);
+		}
 	}
 
 }

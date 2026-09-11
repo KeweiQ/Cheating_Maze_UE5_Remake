@@ -115,7 +115,8 @@ void AMazePlayerCharacter::SetupUI()
 
 				// Record initial UI
 				MainWidgetInstance->RecordWidgetsVisibility();
-				MainWidgetInstance->HideAllWidgets();
+				bool bPlayUIAudio = GameMode->GetSplashState() == true ? false : true;
+				MainWidgetInstance->HideAllWidgets(bPlayUIAudio);
 
 				// Show splash screen
 				if (GameMode->GetSplashState() == true)
@@ -192,7 +193,7 @@ void AMazePlayerCharacter::Move(const FInputActionValue& Value)
 		else
 		{
 			// Add left and right movement
-			AddMovementInput(GetActorRightVector(), MovementValue.X); ///////////////////////////
+			AddMovementInput(GetActorRightVector(), MovementValue.X);
 		}
 	}
 
@@ -216,6 +217,7 @@ void AMazePlayerCharacter::OnCancelPressed(const FInputActionValue& Value)
 {
 	if (GameMode && GameMode->GetWinState() == false && LevelManager)
 	{
+		// reset all cheating states
 		LevelManager->CancelCheating();
 	}
 
@@ -226,6 +228,7 @@ void AMazePlayerCharacter::OnResetPressed(const FInputActionValue& Value)
 {
 	if (GameMode && GameMode->GetWinState() == false && LevelManager)
 	{
+		// reset camera state
 		LevelManager->ResetCamera();
 	}
 
@@ -239,7 +242,7 @@ void AMazePlayerCharacter::OnStartPressed(const FInputActionValue& Value)
 		// Update UI
 		if (MainWidgetInstance)
 		{
-			MainWidgetInstance->HideAllWidgets();
+			MainWidgetInstance->HideAllWidgets(true);
 			MainWidgetInstance->ChangeWidgetVisibilityByName(TEXT("TimerBorder"), ESlateVisibility::Visible);
 		}
 
@@ -278,7 +281,7 @@ void AMazePlayerCharacter::OnPausePressed(const FInputActionValue& Value)
 			if (MainWidgetInstance)
 			{
 				MainWidgetInstance->RecordWidgetsVisibility();
-				MainWidgetInstance->HideAllWidgets();
+				MainWidgetInstance->HideAllWidgets(true);
 				MainWidgetInstance->ChangeWidgetVisibilityByName(TEXT("PauseBorder"), ESlateVisibility::Visible);
 			}
 		}
@@ -286,7 +289,7 @@ void AMazePlayerCharacter::OnPausePressed(const FInputActionValue& Value)
 		{
 			if (MainWidgetInstance)
 			{
-				MainWidgetInstance->HideAllWidgets();
+				MainWidgetInstance->HideAllWidgets(true);
 				MainWidgetInstance->RestoreWidgetsVisibility();
 			}
 		}
@@ -336,7 +339,7 @@ void AMazePlayerCharacter::EndTimer()
 	if (MainWidgetInstance)
 	{
 		MainWidgetInstance->UpdateWinTimer();
-		MainWidgetInstance->HideAllWidgets();
+		MainWidgetInstance->HideAllWidgets(false);
 		MainWidgetInstance->ChangeWidgetVisibilityByName(TEXT("WinBorder"), ESlateVisibility::Visible);
 	}
 

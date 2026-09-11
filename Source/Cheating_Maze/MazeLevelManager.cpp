@@ -7,6 +7,7 @@
 #include "MazeGameMode.h"
 #include "MazePlayerCharacter.h"
 #include "MainUserWidget.h"
+#include "Components/AudioComponent.h"
 
 
 // Sets default values
@@ -86,6 +87,12 @@ void AMazeLevelManager::Interact(FString& InteractableType, AActor* Interactor)
 				Interactor->SetActorEnableCollision(false);
 			}
 		}
+
+		// Play console interaction audio
+		if (AudioManager && AudioManager->ConsoleInteractAudio)
+		{
+			UGameplayStatics::PlaySound2D(this, AudioManager->ConsoleInteractAudio);
+		}
 	}
 
 }
@@ -105,7 +112,7 @@ void AMazeLevelManager::ToggleInspect(FName ObjectName)
 			MainWidgetInstance->ChangeWidgetVisibilityByName(TEXT("CheatBorder"), ESlateVisibility::Visible);
 		}
 		MainWidgetInstance->RecordWidgetsVisibility();
-		MainWidgetInstance->HideAllWidgets();
+		MainWidgetInstance->HideAllWidgets(false);
 		MainWidgetInstance->ChangeWidgetVisibilityByName(TEXT("CloseBorder"), ESlateVisibility::Visible);
 		MainWidgetInstance->ChangeWidgetVisibilityByName(ObjectName, ESlateVisibility::Visible);
 		if (ObjectName.ToString() == "MapImage")
@@ -122,7 +129,7 @@ void AMazeLevelManager::ToggleInspect(FName ObjectName)
 		PlayerController->SetIgnoreLookInput(false);
 
 		// Update UI
-		MainWidgetInstance->HideAllWidgets();
+		MainWidgetInstance->HideAllWidgets(false);
 		MainWidgetInstance->RestoreWidgetsVisibility();
 	}
 }
@@ -222,6 +229,19 @@ void AMazeLevelManager::ToggleCamera()
 
 void AMazeLevelManager::CancelCheating()
 {
+	// Play console interaction audio
+	if (UWidget* Widget = MainWidgetInstance->GetWidgetFromName(TEXT("CheatBorder")))
+	{
+		ESlateVisibility Visibility = Widget->GetVisibility();
+		if (Visibility == ESlateVisibility::Visible)
+		{
+			if (AudioManager && AudioManager->ConsoleInteractAudio)
+			{
+				UGameplayStatics::PlaySound2D(this, AudioManager->ConsoleInteractAudio);
+			}
+		}
+	}
+
 	if (bLight == true)
 	{
 		// Update identifier
@@ -259,6 +279,7 @@ void AMazeLevelManager::CancelCheating()
 	MainWidgetInstance->ChangeWidgetVisibilityByName(TEXT("CancelBorder"), ESlateVisibility::Hidden);
 	MainWidgetInstance->ChangeWidgetVisibilityByName(TEXT("ResetBorder"), ESlateVisibility::Hidden);
 	MainWidgetInstance->ChangeWidgetVisibilityByName(TEXT("CheatBorder"), ESlateVisibility::Hidden);
+
 }
 
 void AMazeLevelManager::ResetCamera()
@@ -278,6 +299,12 @@ void AMazeLevelManager::ResetCamera()
 			{
 				Interactor->SetActorEnableCollision(true);
 			}
+		}
+
+		// Play console interaction audio
+		if (AudioManager && AudioManager->ConsoleInteractAudio)
+		{
+			UGameplayStatics::PlaySound2D(this, AudioManager->ConsoleInteractAudio);
 		}
 	}
 
