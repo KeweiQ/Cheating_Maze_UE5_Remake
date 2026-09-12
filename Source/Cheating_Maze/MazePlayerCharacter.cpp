@@ -1,6 +1,7 @@
 #include "MazePlayerCharacter.h"
 #include "Components/CapsuleComponent.h"
 #include "Components/SpotLightComponent.h"
+#include "Components/AudioComponent.h"
 #include "Camera/CameraComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Kismet/GameplayStatics.h"
@@ -41,12 +42,46 @@ void AMazePlayerCharacter::BeginPlay()
 	// Create and setup player HUD
 	SetupUI();
 
+	// Get audio manager instance
+	AudioManager = Cast<AAudioManager>(UGameplayStatics::GetActorOfClass(GetWorld(), AAudioManager::StaticClass()));
+
+	// Set audio sound base
+	if (AudioManager && AudioManager->PlayerMovementAudio)
+	{
+		PlayerMoveAudio->SetSound(AudioManager->PlayerMovementAudio);
+	}
+
+	// Update last yaw
+	LastYaw = GetControlRotation().Yaw;
+
 }
 
 // Called every frame
 void AMazePlayerCharacter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
+
+	// Check if the player is moving based on velocity and yaw change
+	const bool bIsMoving = GetVelocity().SizeSquared2D() > 10.0f;
+
+	const float CurrentYaw = GetControlRotation().Yaw;
+	const bool bIsRotating = !FMath::IsNearlyEqual(CurrentYaw, LastYaw, 0.01f);
+	LastYaw = CurrentYaw;
+
+	bMovementInputActive = bIsMoving || bIsRotating;
+
+	// Play/stop movement audio based on player movement state
+	if (PlayerMoveAudio)
+	{
+		if (bMovementInputActive && !PlayerMoveAudio->IsPlaying())
+		{
+			PlayerMoveAudio->FadeIn(0.2f);
+		}
+		else if (!bMovementInputActive && PlayerMoveAudio->IsPlaying())
+		{
+			PlayerMoveAudio->FadeOut(0.2f, 0.0f);
+		}
+	}
 
 }
 
@@ -64,12 +99,16 @@ void AMazePlayerCharacter::SetupPlayer()
 	check(FPCamera != nullptr);
 	TopDownCamera = CreateDefaultSubobject<UCameraComponent>(TEXT("TopDownCamera"));
 	check(TopDownCamera != nullptr);
+	PlayerMoveAudio = CreateDefaultSubobject<UAudioComponent>(TEXT("PlayerMovementAudio"));
+	check(PlayerMoveAudio != nullptr);
 
 	// Attach the new components
 	PlayerMesh->SetupAttachment(Capsule);
 	PlayerSpotLight->SetupAttachment(PlayerMesh);
 	FPCamera->SetupAttachment(PlayerMesh);
 	TopDownCamera->SetupAttachment(PlayerMesh);
+	PlayerMoveAudio->SetupAttachment(RootComponent);
+	PlayerMoveAudio->bAutoActivate = false;
 
 }
 
@@ -115,7 +154,8 @@ void AMazePlayerCharacter::SetupUI()
 
 				// Record initial UI
 				MainWidgetInstance->RecordWidgetsVisibility();
-				MainWidgetInstance->HideAllWidgets();
+				bool bPlayUIAudio = GameMode->GetSplashState() == true ? false : true;
+				MainWidgetInstance->HideAllWidgets(bPlayUIAudio);
 
 				// Show splash screen
 				if (GameMode->GetSplashState() == true)
@@ -192,7 +232,7 @@ void AMazePlayerCharacter::Move(const FInputActionValue& Value)
 		else
 		{
 			// Add left and right movement
-			AddMovementInput(GetActorRightVector(), MovementValue.X); ///////////////////////////
+			AddMovementInput(GetActorRightVector(), MovementValue.X);
 		}
 	}
 
@@ -216,6 +256,7 @@ void AMazePlayerCharacter::OnCancelPressed(const FInputActionValue& Value)
 {
 	if (GameMode && GameMode->GetWinState() == false && LevelManager)
 	{
+		// reset all cheating states
 		LevelManager->CancelCheating();
 	}
 
@@ -226,6 +267,7 @@ void AMazePlayerCharacter::OnResetPressed(const FInputActionValue& Value)
 {
 	if (GameMode && GameMode->GetWinState() == false && LevelManager)
 	{
+		// reset camera state
 		LevelManager->ResetCamera();
 	}
 
@@ -239,7 +281,7 @@ void AMazePlayerCharacter::OnStartPressed(const FInputActionValue& Value)
 		// Update UI
 		if (MainWidgetInstance)
 		{
-			MainWidgetInstance->HideAllWidgets();
+			MainWidgetInstance->HideAllWidgets(true);
 			MainWidgetInstance->ChangeWidgetVisibilityByName(TEXT("TimerBorder"), ESlateVisibility::Visible);
 		}
 
@@ -252,6 +294,12 @@ void AMazePlayerCharacter::OnStartPressed(const FInputActionValue& Value)
 		
 		// Update game state
 		GameMode->StartLevel();
+
+		// Resume background ambience audio
+		if (AudioManager)
+		{
+			AudioManager->PlayBackgroundAmbience();
+		}
 	}
 
 }
@@ -278,7 +326,7 @@ void AMazePlayerCharacter::OnPausePressed(const FInputActionValue& Value)
 			if (MainWidgetInstance)
 			{
 				MainWidgetInstance->RecordWidgetsVisibility();
-				MainWidgetInstance->HideAllWidgets();
+				MainWidgetInstance->HideAllWidgets(true);
 				MainWidgetInstance->ChangeWidgetVisibilityByName(TEXT("PauseBorder"), ESlateVisibility::Visible);
 			}
 		}
@@ -286,7 +334,7 @@ void AMazePlayerCharacter::OnPausePressed(const FInputActionValue& Value)
 		{
 			if (MainWidgetInstance)
 			{
-				MainWidgetInstance->HideAllWidgets();
+				MainWidgetInstance->HideAllWidgets(true);
 				MainWidgetInstance->RestoreWidgetsVisibility();
 			}
 		}
@@ -336,13 +384,19 @@ void AMazePlayerCharacter::EndTimer()
 	if (MainWidgetInstance)
 	{
 		MainWidgetInstance->UpdateWinTimer();
-		MainWidgetInstance->HideAllWidgets();
+		MainWidgetInstance->HideAllWidgets(false);
 		MainWidgetInstance->ChangeWidgetVisibilityByName(TEXT("WinBorder"), ESlateVisibility::Visible);
 	}
 
 	// Disable player control
 	PlayerController->SetIgnoreMoveInput(true);
 	PlayerController->SetIgnoreLookInput(true);
+
+	// Pause background ambience audio
+	if (AudioManager)
+	{
+		AudioManager->StopBackgroundAmbience();
+	}
 
 }
 

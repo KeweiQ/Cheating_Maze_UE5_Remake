@@ -5,6 +5,7 @@
 #include "Engine/StaticMeshActor.h" 
 #include "Engine/DirectionalLight.h"
 #include "Engine/SkyLight.h"
+#include "AudioManager.h"
 #include "MazeLevelManager.generated.h"
 
 
@@ -78,6 +79,12 @@ protected:
 	// Toggle the solution path
 	UFUNCTION()
 	void TogglePath();
+
+	/* ---------- Game audio ---------- */
+
+	// Audio manager instance
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Audio")
+	TObjectPtr<AAudioManager> AudioManager;
 
 public:	
 	// Called every frame
