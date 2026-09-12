@@ -15,6 +15,9 @@ class CHEATING_MAZE_API UMainUserWidget : public UUserWidget
 	GENERATED_BODY()
 
 protected:
+	// Called when the widget is constructed
+	virtual void NativeConstruct() override;
+
 	/* ---------- Arrays to record widget visibilities in the last stage ---------- */
 
 	// In-game state widget visibility status
@@ -34,7 +37,7 @@ protected:
 
 	// Audio manager instance
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Audio")
-	TObjectPtr<UAudioManager> AudioManager;
+	TObjectPtr<AAudioManager> AudioManager;
 	
 public:
 	/* ---------- Timer recording how long to beat the maze ---------- */

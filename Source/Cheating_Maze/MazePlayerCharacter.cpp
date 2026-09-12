@@ -1,6 +1,7 @@
 #include "MazePlayerCharacter.h"
 #include "Components/CapsuleComponent.h"
 #include "Components/SpotLightComponent.h"
+#include "Components/AudioComponent.h"
 #include "Camera/CameraComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Kismet/GameplayStatics.h"
@@ -41,12 +42,46 @@ void AMazePlayerCharacter::BeginPlay()
 	// Create and setup player HUD
 	SetupUI();
 
+	// Get audio manager instance
+	AudioManager = Cast<AAudioManager>(UGameplayStatics::GetActorOfClass(GetWorld(), AAudioManager::StaticClass()));
+
+	// Set audio sound base
+	if (AudioManager && AudioManager->PlayerMovementAudio)
+	{
+		PlayerMoveAudio->SetSound(AudioManager->PlayerMovementAudio);
+	}
+
+	// Update last yaw
+	LastYaw = GetControlRotation().Yaw;
+
 }
 
 // Called every frame
 void AMazePlayerCharacter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
+
+	// Check if the player is moving based on velocity and yaw change
+	const bool bIsMoving = GetVelocity().SizeSquared2D() > 10.0f;
+
+	const float CurrentYaw = GetControlRotation().Yaw;
+	const bool bIsRotating = !FMath::IsNearlyEqual(CurrentYaw, LastYaw, 0.01f);
+	LastYaw = CurrentYaw;
+
+	bMovementInputActive = bIsMoving || bIsRotating;
+
+	// Play/stop movement audio based on player movement state
+	if (PlayerMoveAudio)
+	{
+		if (bMovementInputActive && !PlayerMoveAudio->IsPlaying())
+		{
+			PlayerMoveAudio->FadeIn(0.2f);
+		}
+		else if (!bMovementInputActive && PlayerMoveAudio->IsPlaying())
+		{
+			PlayerMoveAudio->FadeOut(0.2f, 0.0f);
+		}
+	}
 
 }
 
@@ -64,12 +99,16 @@ void AMazePlayerCharacter::SetupPlayer()
 	check(FPCamera != nullptr);
 	TopDownCamera = CreateDefaultSubobject<UCameraComponent>(TEXT("TopDownCamera"));
 	check(TopDownCamera != nullptr);
+	PlayerMoveAudio = CreateDefaultSubobject<UAudioComponent>(TEXT("PlayerMovementAudio"));
+	check(PlayerMoveAudio != nullptr);
 
 	// Attach the new components
 	PlayerMesh->SetupAttachment(Capsule);
 	PlayerSpotLight->SetupAttachment(PlayerMesh);
 	FPCamera->SetupAttachment(PlayerMesh);
 	TopDownCamera->SetupAttachment(PlayerMesh);
+	PlayerMoveAudio->SetupAttachment(RootComponent);
+	PlayerMoveAudio->bAutoActivate = false;
 
 }
 
@@ -255,6 +294,12 @@ void AMazePlayerCharacter::OnStartPressed(const FInputActionValue& Value)
 		
 		// Update game state
 		GameMode->StartLevel();
+
+		// Resume background ambience audio
+		if (AudioManager)
+		{
+			AudioManager->PlayBackgroundAmbience();
+		}
 	}
 
 }
@@ -346,6 +391,12 @@ void AMazePlayerCharacter::EndTimer()
 	// Disable player control
 	PlayerController->SetIgnoreMoveInput(true);
 	PlayerController->SetIgnoreLookInput(true);
+
+	// Pause background ambience audio
+	if (AudioManager)
+	{
+		AudioManager->StopBackgroundAmbience();
+	}
 
 }
 

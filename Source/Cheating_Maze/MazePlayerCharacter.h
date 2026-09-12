@@ -6,6 +6,7 @@
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
 #include "InputActionValue.h"
+#include "AudioManager.h"
 #include "MazePlayerCharacter.generated.h"
 
 
@@ -17,6 +18,7 @@ class UInputComponent;
 class USpotLightComponent;
 class UCameraComponent;
 class UCharacterMovementComponent;
+class UAudioComponent;
 class UMainUserWidget;
 
 
@@ -66,6 +68,12 @@ protected:
 	// Player turning rate
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Movement")
 	float TurnRate = 60.0f;
+
+	// Stored last yaw angle for movement check
+	float LastYaw = 0.0f;
+
+	// Player movement state identifier
+	bool bMovementInputActive = false;
 
 	// Handles two types of movement
 	UFUNCTION()
@@ -169,6 +177,15 @@ protected:
 	// Resume maze timer when resuming the game
 	UFUNCTION(BlueprintCallable, Category = "Timer")
 	void ResumeTimer();
+
+	/* ---------- Game audio ---------- */
+
+	// Audio manager instance
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Audio")
+	TObjectPtr<AAudioManager> AudioManager;
+
+	UPROPERTY(VisibleAnywhere, Category = "Audio")
+	TObjectPtr<UAudioComponent> PlayerMoveAudio;
 
 public:	
 	// Called every frame

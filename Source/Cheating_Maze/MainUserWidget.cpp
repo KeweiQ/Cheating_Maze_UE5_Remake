@@ -6,6 +6,17 @@
 #include <Kismet/GameplayStatics.h>
 
 
+// Called when the game starts or when spawned
+void UMainUserWidget::NativeConstruct()
+{
+	Super::NativeConstruct();
+
+	// Get audio manager instance
+	AudioManager = Cast<AAudioManager>(UGameplayStatics::GetActorOfClass(GetWorld(), AAudioManager::StaticClass()));
+
+}
+
+
 void UMainUserWidget::ChangeWidgetVisibilityByName(FName WidgetName, ESlateVisibility NewVisibility)
 {
 	// Get widget component
@@ -34,9 +45,9 @@ void UMainUserWidget::HideAllWidgets(bool bPlayUIAudio)
 		}
 
 		// Play ui sound
-		if (bPlayUIAudio == true && AudioManager && AudioManager->UIAudio)
+		if (bPlayUIAudio == true && AudioManager)
 		{
-			UGameplayStatics::PlaySound2D(this, AudioManager->UIAudio);
+			AudioManager->PlayUIAudio(this);
 		}
 	}
 

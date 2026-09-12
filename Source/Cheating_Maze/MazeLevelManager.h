@@ -84,7 +84,7 @@ protected:
 
 	// Audio manager instance
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Audio")
-	TObjectPtr<UAudioManager> AudioManager;
+	TObjectPtr<AAudioManager> AudioManager;
 
 public:	
 	// Called every frame
