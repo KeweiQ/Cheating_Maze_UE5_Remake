@@ -74,4 +74,8 @@ public:
 	UFUNCTION()
 	void SetSplashState(bool NewState);
 
+	/* ---------- Achievements ---------- */
+	UFUNCTION(BlueprintCallable, Category = "Steam")
+	void UnlockAchievement(const FString& AchievementId);
+
 };

@@ -1,5 +1,8 @@
 #include "MazeGameMode.h"
 #include "Kismet/GameplayStatics.h"
+#include "OnlineSubsystem.h"
+#include "Interfaces/OnlineIdentityInterface.h"
+#include "Interfaces/OnlineAchievementsInterface.h"
 
 
 bool AMazeGameMode::bSplash = true;
@@ -79,6 +82,9 @@ void AMazeGameMode::Win()
 	// Update identifier
 	bWin = true;
 
+	// Unlock steam achievement
+	UnlockAchievement(TEXT("STEAM_ACHIEVEMENT_BEAT"));
+
 }
 
 bool AMazeGameMode::GetWinState() {
@@ -107,5 +113,71 @@ bool AMazeGameMode::GetSplashState()
 void AMazeGameMode::SetSplashState(bool NewState)
 {
 	bSplash = NewState;
+
+}
+
+void AMazeGameMode::UnlockAchievement(const FString& AchievementId)
+{
+	// Connect to Steam achievements
+	IOnlineSubsystem* OSS = IOnlineSubsystem::Get();
+	if (!OSS) return;
+
+	auto Identity = OSS->GetIdentityInterface();
+	auto Achievements = OSS->GetAchievementsInterface();
+
+	if (!Identity.IsValid() || !Achievements.IsValid()) return;
+
+	auto UserId = Identity->GetUniquePlayerId(0);
+	if (!UserId.IsValid()) return;
+	
+	Achievements->QueryAchievements(
+		*UserId,
+		FOnQueryAchievementsCompleteDelegate::CreateLambda(
+			[Achievements, UserId, AchievementId](const FUniqueNetId& PlayerId, bool bWasSuccessful)
+			{
+				if (!bWasSuccessful)
+				{
+					UE_LOG(LogTemp, Warning, TEXT("Failed to query Steam achievements"));
+					return;
+				}
+
+				// Check if the achievement has already been unlocked
+				FOnlineAchievement Achievement;
+
+				if (Achievements->GetCachedAchievement(*UserId, AchievementId, Achievement) == EOnlineCachedResult::Success)
+				{
+					if (Achievement.Progress >= 100.0) return;
+				}
+				else
+				{
+					UE_LOG(LogTemp, Warning, TEXT("Achievement not found: %s"), *AchievementId);
+					return;
+				}
+
+				// Unlock the achievement
+				FOnlineAchievementsWriteRef WriteObject = MakeShared<FOnlineAchievementsWrite>();
+
+				WriteObject->SetFloatStat(AchievementId, 100.0f);
+
+				Achievements->WriteAchievements(
+					*UserId,
+					WriteObject,
+					FOnAchievementsWrittenDelegate::CreateLambda(
+						[AchievementId](const FUniqueNetId& WrittenPlayerId, bool bWriteSuccessful)
+						{
+							if (bWriteSuccessful)
+							{
+								UE_LOG(LogTemp, Log, TEXT("Achievement %s: Write succeeded"), *AchievementId);
+							}
+							else
+							{
+								UE_LOG(LogTemp, Warning, TEXT("Achievement %s: Write failed"), *AchievementId);
+							}
+						}
+					)
+				);
+			}
+		)
+	);
 
 }
